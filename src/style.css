@@ -1,0 +1,110 @@
+@keyframes playersMovement {
+    0% {
+        object-position: calc(0 * -32px) 0;
+    }
+
+    17% {
+        object-position: calc(1 * -32px) 0;
+    }
+
+    34% {
+        object-position: calc(2 * -32px) 0;
+    }
+
+    51% {
+        object-position: calc(3 * -32px) 0;
+    }
+
+    68% {
+        object-position: calc(4 * -32px) 0;
+    }
+
+    85% {
+        object-position: calc(5 * -32px) 0;
+    }
+
+    100% {
+        object-position: calc(6 * -32px) 0;
+    }
+}
+
+#gameMap {
+    box-sizing: border-box;
+    height: 400px;
+
+    overflow: hidden;
+}
+
+.players {
+    position: absolute;
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    object-fit: none;
+    object-position: 0 0;
+    animation: playersMovement 0.8s infinite step-end;
+
+    user-select: none;
+    -webkit-user-drag: none;
+
+    /* transform: translate(-50%, calc(-50% - 8px)) scale(1.1); */
+
+    top: 32px;
+    left: 32px;
+
+    z-index: 1;
+}
+
+.playersNickname {
+    position: absolute;
+    display: inline-block;
+
+    user-select: none;
+    -webkit-user-drag: none;
+
+    transform: translate(-50%, -16px);
+
+    top: 32px;
+    left: 32px;
+
+    z-index: 1;
+}
+
+#popUpDialogNickname {
+    transition: all 0.3s ease-in-out;
+    transform: translateX(-50%) scale(0);
+
+    z-index: 3;
+}
+
+.show {
+    transform: translateX(-50%) scale(1) !important;
+}
+
+#popUpBackground {
+    transition: all 0.3s ease-in-out;
+    opacity: 0;
+
+    z-index: 2;
+}
+
+.slideDown {
+    transform: translateY(100%) !important;
+}
+
+#chatContainer {
+    transition: all 0.3s ease-in-out;
+    z-index: 2;
+    bottom: 0;
+    transform: translateY(0);
+}
+
+.bubbleChat {
+    z-index: 5;
+    transition: all 0.3s ease-in-out;
+    border-radius: 5px;
+    font-size: 14px;
+    padding: 4px 8px;
+    box-sizing: border-box;
+    max-width: 100px;
+}

@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slimy Land | Gather together as a group of slimes</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <link href='https://unpkg.com/boxicons@2.1.2/css/boxicons.min.css' rel='stylesheet'>
+
+    <style>
+
+        @keyframes playersMovement {
+            0%
+            {
+                object-position: calc(0 * -32px) 0;
+            }
+            17%
+            {
+                object-position: calc(1 * -32px) 0;
+            }
+            34%
+            {
+                object-position: calc(2 * -32px) 0;
+            }
+            51%
+            {
+                object-position: calc(3 * -32px) 0;
+            }
+            68%
+            {
+                object-position: calc(4 * -32px) 0;
+            }
+            85%
+            {
+                object-position: calc(5 * -32px) 0;
+            }
+            100%
+            {
+                object-position: calc(6 * -32px) 0;
+            }
+        }
+
+        #gameMap
+        {
+            box-sizing: border-box;
+            height: 400px;
+
+            overflow: hidden;
+        }
+
+        .tiles
+        {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+
+            z-index: 0;
+        }
+
+        .players
+        {
+            position: absolute;
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            object-fit: none;
+            object-position: 0 0;
+            animation: playersMovement 0.8s infinite step-end;
+
+            user-select: none;
+            -webkit-user-drag: none;
+            
+            /* transform: translate(-50%, calc(-50% - 8px)) scale(1.1); */
+
+            top: 32px;
+            left: 32px;
+
+            z-index: 1;
+        }
+
+        .playersNickname
+        {
+            position: absolute;
+            display: inline-block;
+
+            user-select: none;
+            -webkit-user-drag: none;
+            
+            transform: translate(-50%, -16px);
+
+            top: 32px;
+            left: 32px;
+
+            z-index: 1;
+        }
+
+        #tiles1
+        {
+            top: 24px;
+            left: 24px;
+        }
+
+        #popUpDialogNickname
+        {
+            transition: all 0.3s ease-in-out;
+            transform: translateX(-50%) scale(0);
+            
+            z-index: 3;
+        }
+
+        .show
+        {
+            transform: translateX(-50%) scale(1) !important;
+        }
+
+        #popUpBackground
+        {
+            transition: all 0.3s ease-in-out;
+            opacity: 0;
+
+            z-index: 2;
+        }
+
+        .slideDown
+        {
+            transform: translateY(100%) !important;
+        }
+
+        #chatContainer
+        {
+            transition: all 0.3s ease-in-out;
+            z-index: 2;
+            bottom: 0;
+            transform: translateY(0);
+        }
+
+        .bubbleChat
+        {
+            z-index: 5;
+            transition: all 0.3s ease-in-out;
+            border-radius: 5px;
+            font-size: 14px;
+            padding: 4px 8px;
+            box-sizing: border-box;
+            max-width: 100px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container-fluid vh-100 position-relative">
+        <div class="row d-flex align-items-center justify-content-center h-100 p-lg-0 p-md-0 p-sm-0 p-4">
+            <div class="col-lg-8 col-md-9 col-sm-10 col-12">
+                <div class="row p-0 m-0">
+                    <div class="col-9">
+                        <p class="h3">Slimy Land</p>
+                        <p class="text-black-50 d-inline-block">Where all slimes gather together</p>
+                    </div>
+                    <div class="col-3 d-flex align-items-center">
+                        <button class="btn btn-primary form-control" id="btnJoin">Join</button>
+                    </div>
+                </div>
+
+                <div class="row p-0 m-0">
+                    <div class="col-12 border d-flex bg-light p-0 position-relative user-select-none" id="gameMap">
+                        <!-- <img src="" class="players" id="yourPlayer"> -->
+                        <!-- <div class="tiles bg-success" id="tiles1"></div> -->
+                    </div>
+                </div>
+                <!-- <p class="m-0 mt-3 text-primary h6">
+                    <i class="bx bx-user"></i>
+                    Your turn
+
+                    <i class="bx bx-loader-circle bx-spin"></i>
+                    Waiting for opponent moves
+                </p> -->
+            </div>
+        </div>
+        <div class="col-12 bg-dark p-0 w-100 h-100 position-absolute top-0 start-0 d-none" id="popUpBackground"></div>
+        <div class="col-lg-3 col-md-5 col-sm-7 col-12 d-flex align-items-center justify-content-center h-100 p-lg-0 p-4 position-absolute top-0 start-50 d-none" id="popUpDialogNickname">
+            <div class="card card-body shadow-lg">
+                <form id="formNickname">
+                    <p class="card-title fw-bold">Nickname</p>
+                    <input type="text" class="form-control card-text" id="txtNickname">
+                    <button class="btn btn-success mt-3 form-control" id="btnGo" type="submit">Let's Go</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+
+    const gameMap = document.querySelector("#gameMap");
+
+    const btnJoin = document.querySelector("#btnJoin");
+    const popUpBackground = document.querySelector("#popUpBackground");
+    const popUpDialogNickname = document.querySelector("#popUpDialogNickname");
+    const formNickname = document.querySelector("#formNickname");
+    const txtNickname = document.querySelector("#txtNickname");
+    const btnGo = document.querySelector("#btnGo");
+    let chatContainer = document.querySelector("#chatContainer");
+    let txtChat = document.querySelector("#txtChat");
+
+    const color = ["Blue", "Green", "Grey", "Orange", "Red", "Yellow", "Brown"];
+
+    let yourPlayer;
+    let playerJoined = false;
+    let playerID = -1;
+    let playerFace = "left";
+    let chatToggle = "off";
+
+
+
+
+
+    // const url = "wss://05ec-103-154-110-63.ap.ngrok.io";
+    const url = "ws://localhost:950";
+    let webSocketConnection;
+
+    webSocketConnection = new WebSocket(url);
+    webSocketConnection.addEventListener("open", (e) =>
+    {
+        console.log("You are now connected");
+    });
+
+    webSocketConnection.addEventListener("close", (e) =>
+    {
+        resetSlimyLand();
+
+        console.log("You are disconnected");
+    });
+
+    webSocketConnection.addEventListener("error", (e) =>
+    {
+        alert("You are not connected to the server !");
+        console.log("Error");
+    });
+
+    webSocketConnection.addEventListener("message", (e) =>
+    {
+        const jsonObject = JSON.parse(e.data);
+
+        if(jsonObject.type == "loadMap")
+        {
+            if(jsonObject.value.playerID != playerID)
+            {
+                const player = document.createElement("img");
+                player.id = "player" + jsonObject.value.playerID;
+                player.src = `Assets/Slime_${color[(jsonObject.value.playerID - 1) % 7]}.png`;
+                player.classList.add("players");
+                player.style.top = `${jsonObject.value.y}px`;
+                player.style.left = `${jsonObject.value.x}px`;
+
+                const playerNickname = document.createElement("span");
+                playerNickname.id = "playerNickname" + jsonObject.value.playerID;
+                playerNickname.classList.add("playersNickname");
+                playerNickname.innerHTML = jsonObject.value.playerNickname;
+                playerNickname.style.top = `${jsonObject.value.y}px`;
+                playerNickname.style.left = `${jsonObject.value.x + 16}px`;
+
+                changePlayerFaceTo(player, jsonObject.value.playerFace);
+
+                gameMap.appendChild(playerNickname);
+                gameMap.appendChild(player);
+            }
+        }
+        else if(jsonObject.type == "newPlayerRegisterInformation")
+        {
+            newPlayerID = jsonObject.value.playerID;
+
+            const newPlayer = document.createElement("img");
+            newPlayer.id = "player" + newPlayerID;
+            newPlayer.src = `Assets/Slime_${color[(jsonObject.value.playerID - 1) % 7]}.png`;
+            newPlayer.classList.add("players");
+            newPlayer.style.top = `${jsonObject.value.y}px`;
+            newPlayer.style.left = `${jsonObject.value.x}px`;
+
+            const newPlayerNickname = document.createElement("span");
+            newPlayerNickname.id = "playerNickname" + newPlayerID;
+            newPlayerNickname.classList.add("playersNickname");
+            newPlayerNickname.innerHTML = jsonObject.value.playerNickname;
+            newPlayerNickname.style.top = `${jsonObject.value.y}px`;
+            newPlayerNickname.style.left = `${jsonObject.value.x + 16}px`;
+
+            changePlayerFaceTo(newPlayer, jsonObject.value.playerFace);
+
+            gameMap.appendChild(newPlayerNickname);
+            gameMap.appendChild(newPlayer);
+
+            gameMap.innerHTML += `
+            <div class="p-3 w-100 align-self-end bg-white position-absolute slideDown" id="chatContainer">
+                <input type="text" class="form-control" id="txtChat">
+            </div>`;
+
+            if(playerID == -1 && playerJoined == true)
+            {
+                playerID = newPlayerID;
+                yourPlayer = document.querySelector(`#player${playerID}`);
+                txtChat = document.querySelector("#txtChat");
+                chatContainer = document.querySelector("#chatContainer");
+            }
+
+            webSocketConnection.send(JSON.stringify(
+                {
+                    type : "newPlayer",
+                    value : 
+                    {
+                        playerID : newPlayerID
+                    }
+                }
+            ));
+        }
+        else if(jsonObject.type == "newPlayer")
+        {
+            if(jsonObject.value.playerID != playerID)
+            {
+                const player = document.createElement("img");
+                player.id = "player" + jsonObject.value.playerID;
+                player.src = `Assets/Slime_${color[(jsonObject.value.playerID - 1) % 7]}.png`;
+                player.classList.add("players");
+                player.style.top = `${jsonObject.value.y}px`;
+                player.style.left = `${jsonObject.value.x}px`;
+
+                const playerNickname = document.createElement("span");
+                playerNickname.id = "playerNickname" + jsonObject.value.playerID;
+                playerNickname.classList.add("playersNickname");
+                playerNickname.innerHTML = jsonObject.value.playerNickname;
+                playerNickname.style.top = `${jsonObject.value.y}px`;
+                playerNickname.style.left = `${jsonObject.value.x + 16}px`;
+
+                changePlayerFaceTo(player, jsonObject.value.playerFace);
+
+                gameMap.appendChild(playerNickname);
+                gameMap.appendChild(player);
+            }
+        }
+        else if(jsonObject.type == "playerPosition")
+        {
+            if(jsonObject.value.playerID != playerID)
+            {
+                const anotherPlayer = document.querySelector(`#player${jsonObject.value.playerID}`);
+                anotherPlayer.style.top = `${jsonObject.value.y}px`;
+                anotherPlayer.style.left = `${jsonObject.value.x}px`;
+
+                changePlayerFaceTo(anotherPlayer, jsonObject.value.playerFace);
+
+                const anotherPlayerNickname = document.querySelector(`#playerNickname${jsonObject.value.playerID}`);
+                anotherPlayerNickname.style.top = `${jsonObject.value.y}px`;
+                anotherPlayerNickname.style.left = `${jsonObject.value.x + 16}px`;
+            }
+        }
+        else if(jsonObject.type == "playerRemoved")
+        {
+            const playerRemoved = document.querySelector(`#player${jsonObject.value.playerID}`);
+            playerRemoved.remove();
+        }
+        else if(jsonObject.type == "clearMap")
+        {
+            gameMap.innerHTML = "";
+            yourPlayer = "";
+            chatContainer = "";
+            txtChat = "";
+        }
+        else if(jsonObject.type == "mapUpdates")
+        {
+            const player = document.createElement("img");
+            player.id = "player" + jsonObject.value.playerID;
+            player.src = `Assets/Slime_${color[(jsonObject.value.playerID - 1) % 7]}.png`;
+            player.classList.add("players");
+            player.style.top = `${jsonObject.value.y}px`;
+            player.style.left = `${jsonObject.value.x}px`;
+
+            const playerNickname = document.createElement("span");
+            playerNickname.id = "playerNickname" + jsonObject.value.playerID;
+            playerNickname.classList.add("playersNickname");
+            playerNickname.innerHTML = jsonObject.value.playerNickname;
+            playerNickname.style.top = `${jsonObject.value.y}px`;
+            playerNickname.style.left = `${jsonObject.value.x + 16}px`;
+
+            changePlayerFaceTo(player, jsonObject.value.playerFace);
+
+            gameMap.appendChild(playerNickname);
+            gameMap.appendChild(player);
+
+            gameMap.innerHTML += `
+            <div class="p-3 w-100 align-self-end bg-white position-absolute slideDown" id="chatContainer">
+                <input type="text" class="form-control" id="txtChat">
+            </div>`;
+
+            yourPlayer = document.querySelector(`#player${playerID}`);
+            chatContainer = document.querySelector("#chatContainer");
+            txtChat = document.querySelector("#txtChat");
+        }
+        else if(jsonObject.type == "playerChat")
+        {
+            if(jsonObject.value.playerID != playerID)
+            {
+                addBubbleChat(jsonObject.value.playerFace, jsonObject.value.chatText, jsonObject.value.x, jsonObject.value.y);
+            }
+        }
+    });
+
+
+
+
+    const resetSlimyLand = () =>
+    {
+        gameMap.innerHTML = "";
+        playerID = -1;
+        playerJoined = false;
+        playerFace = "left";
+        yourPlayer = "";
+
+        txtChat = "";
+        chatContainer = "";
+
+        window.removeEventListener("keydown", gameMapOnKey);
+        window.removeEventListener("keyup", gameMapOnKey);
+
+        btnJoin.classList.remove("btn-danger");
+        btnJoin.classList.add("btn-primary");
+        btnJoin.innerHTML = "Join";
+    };
+
+    const gameMapClick = (e) =>
+    {
+        const mapPosition = gameMap.getBoundingClientRect();
+        const currentX = Math.ceil(e.clientX - mapPosition.x);
+        const currentY = Math.ceil(e.clientY - mapPosition.y);
+
+        yourPlayer.style.left = `${currentX}px`;
+        yourPlayer.style.top = `${currentY}px`;
+
+        webSocketConnection.send(JSON.stringify(
+            {
+                type : "playerPosition",
+                value :
+                {
+                    playerID : playerID,
+                    playerFace : "left",
+                    x : currentX,
+                    y : currentY
+                }
+            }
+        ));
+    };
+
+    const moveYourPlayer = (newX, newY) =>
+    {
+        yourPlayer.style.left = `${newX}px`;
+        yourPlayer.style.top = `${newY}px`;
+
+        const yourPlayerNickname = document.querySelector("#playerNickname" + playerID);
+        yourPlayerNickname.style.left = `${newX + 16}px`;
+        yourPlayerNickname.style.top = `${newY}px`;
+
+        webSocketConnection.send(JSON.stringify(
+            {
+                type : "playerPosition",
+                value :
+                {
+                    playerID : playerID,
+                    playerFace : playerFace,
+                    x : newX,
+                    y : newY
+                }
+            }
+        ));
+    };
+
+    const changePlayerFaceTo = (element, face) =>
+    {
+        if(face == "right")
+        {
+            element.style.transform = "scaleX(-1)";
+        }
+        else if(face == "left")
+        {
+            element.style.transform = "scaleX(1)";
+        }
+
+        if(element == yourPlayer)
+        {
+            playerFace = face;
+        }
+    };
+
+    const addBubbleChat = (face, chatText, x, y) =>
+    {
+        const bubbleChat = document.createElement("span");
+        bubbleChat.classList.add("bubbleChat");
+        bubbleChat.classList.add("border");
+        bubbleChat.classList.add("d-inline-block");
+        bubbleChat.classList.add("position-absolute");
+        bubbleChat.classList.add("bg-white");
+        bubbleChat.innerHTML = chatText;
+
+        gameMap.appendChild(bubbleChat);
+
+        bubbleChat.style.top = `${y}px`;
+        if(face == "left")
+        {
+            bubbleChat.style.textAlign = "right";
+            bubbleChat.style.left = `${x - bubbleChat.clientWidth - 12}px`;
+        }
+        else
+        {
+            bubbleChat.style.textAlign = "left";
+            bubbleChat.style.left = `${x + 42}px`;
+        }
+
+        setTimeout(() =>
+        {
+            bubbleChat.remove();
+        }, 1500);
+    };
+
+    const gameMapKeyObject = {};
+
+    const gameMapOnKey = (e) =>
+    {
+        e.preventDefault();
+
+        gameMapKeyObject[e.key] = e.type == "keydown";
+
+        const currentX = Number(yourPlayer.style.left.split("p")[0]);
+        const currentY = Number(yourPlayer.style.top.split("p")[0]);
+        const playerSpeed = 5;
+
+        let newX = currentX;
+        let newY = currentY;
+
+        if(chatToggle == "off")
+        {
+            if(gameMapKeyObject["w"] == true && gameMapKeyObject["a"] == true || (gameMapKeyObject["ArrowUp"] == true && gameMapKeyObject["ArrowLeft"] == true))
+            {
+                newY -= playerSpeed;
+                newX -= playerSpeed;
+
+                changePlayerFaceTo(yourPlayer, "left");
+            }
+            else if(gameMapKeyObject["w"] == true && gameMapKeyObject["d"] == true || (gameMapKeyObject["ArrowUp"] == true && gameMapKeyObject["ArrowRight"] == true))
+            {
+                newY -= playerSpeed;
+                newX += playerSpeed;
+
+                changePlayerFaceTo(yourPlayer, "right");
+            }
+            else if(gameMapKeyObject["s"] == true && gameMapKeyObject["a"] == true || (gameMapKeyObject["ArrowDown"] == true && gameMapKeyObject["ArrowLeft"] == true))
+            {
+                newY += playerSpeed;
+                newX -= playerSpeed;
+
+                changePlayerFaceTo(yourPlayer, "left");
+            }
+            else if(gameMapKeyObject["s"] == true && gameMapKeyObject["d"] == true || (gameMapKeyObject["ArrowDown"] == true && gameMapKeyObject["ArrowRight"] == true))
+            {
+                newY += playerSpeed;
+                newX += playerSpeed;
+
+                changePlayerFaceTo(yourPlayer, "right");
+            }
+            else if(gameMapKeyObject["w"] == true || gameMapKeyObject["ArrowUp"] == true)
+            {
+                newY -= playerSpeed;
+            }
+            else if(gameMapKeyObject["a"] == true || gameMapKeyObject["ArrowLeft"] == true)
+            {
+                newX -= playerSpeed;
+
+                changePlayerFaceTo(yourPlayer, "left");
+            }
+            else if(gameMapKeyObject["s"] == true || gameMapKeyObject["ArrowDown"] == true)
+            {
+                newY += playerSpeed;
+            }
+            else if(gameMapKeyObject["d"] == true || gameMapKeyObject["ArrowRight"] == true)
+            {
+                newX += playerSpeed;
+
+                changePlayerFaceTo(yourPlayer, "right");
+            }
+            else if(gameMapKeyObject["t"] == true)
+            {
+                chatContainer.classList.remove("slideDown");
+                txtChat.focus();
+
+                chatToggle = "on";
+                txtChat.value = "";
+            }
+        }
+        else
+        {
+            if(gameMapKeyObject[e.key] == true)
+            {
+                if(e.keyCode == 32 || (e.keyCode >= 48 && e.keyCode <= 90) || (e.keyCode >= 96 && e.keyCode <= 111) || (e.keyCode >= 186 && e.keyCode <= 222))
+                {
+                    if(gameMapKeyObject["t"] == true)
+                    {
+                        if(txtChat.value.trim() == "")
+                        {
+                            chatContainer.classList.add("slideDown");
+                            gameMap.focus();
+
+                            chatToggle = "off";
+                            txtChat.value = "";
+
+                            return;
+                        }
+                    }
+
+                    txtChat.value += e.key;
+                }
+                else if(e.key == "Enter")
+                {
+                    addBubbleChat(playerFace, txtChat.value, currentX, currentY);
+
+                    webSocketConnection.send(JSON.stringify(
+                        {
+                            type : "playerChat",
+                            value : 
+                            {
+                                playerID : playerID,
+                                playerFace : playerFace,
+                                chatText : txtChat.value,
+                                x : currentX,
+                                y : currentY
+                            }
+                        }
+                    ));
+
+                    chatContainer.classList.add("slideDown");
+                    gameMap.focus();
+
+                    chatToggle = "off";
+                    txtChat.value = "";
+
+                    return;
+                }
+                else if(e.keyCode == 8)
+                {
+                    txtChat.value = txtChat.value.substring(0, txtChat.value.length - 1);
+                }
+            }
+        }
+
+        moveYourPlayer(newX, newY);
+    }
+
+    btnJoin.addEventListener("click", () =>
+    {
+        if(btnJoin.innerHTML == "Join")
+        {
+            popUpBackground.classList.remove("d-none");
+            popUpDialogNickname.classList.remove("d-none");
+
+            txtNickname.focus();
+
+            setTimeout(() => 
+            {
+                popUpBackground.classList.add("opacity-50");
+                popUpDialogNickname.classList.add("show");
+            }, 0);
+        }
+        else
+        {
+            webSocketConnection.send(JSON.stringify(
+                {
+                    type : "playerRemoved",
+                    value :
+                    {
+                        playerID : playerID
+                    }
+                }
+            ));
+
+            resetSlimyLand();
+        }
+    });
+
+    formNickname.addEventListener("submit", (e) =>
+    {
+        e.preventDefault();
+
+        if(txtNickname.value.trim() == "")
+        {
+            alert("Please fill in your nickname ...");
+            return;
+        }
+
+        popUpBackground.classList.remove("opacity-50");
+        popUpDialogNickname.classList.remove("show");
+
+        setTimeout(() => 
+        {
+            popUpBackground.classList.add("d-none");
+            popUpDialogNickname.classList.add("d-none");
+        }, 400);
+
+        playerJoined = true;
+
+        webSocketConnection.send(JSON.stringify(
+            {
+                type : "newPlayerRegister",
+                value :
+                {
+                    playerNickname : txtNickname.value.trim()
+                }
+            }
+        ));
+
+        window.focus();
+        window.addEventListener("keydown", gameMapOnKey);
+        window.addEventListener("keyup", gameMapOnKey);
+
+        btnJoin.classList.remove("btn-primary");
+        btnJoin.classList.add("btn-danger");
+        btnJoin.innerHTML = "Leave";
+    });
+
+</script>
+</html>
