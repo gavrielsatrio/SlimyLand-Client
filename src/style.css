@@ -1,4 +1,4 @@
-@keyframes playersMovement {
+@keyframes playersIdle {
     0% {
         object-position: calc(0 * -32px) 0;
     }
@@ -28,6 +28,52 @@
     }
 }
 
+@keyframes playersDestroyed {
+    0% {
+        object-position: calc(0 * -32px) -96px;
+    }
+
+    10% {
+        object-position: calc(1 * -32px) -96px;
+    }
+
+    20% {
+        object-position: calc(2 * -32px) -96px;
+    }
+
+    30% {
+        object-position: calc(3 * -32px) -96px;
+    }
+
+    40% {
+        object-position: calc(4 * -32px) -96px;
+    }
+
+    50% {
+        object-position: calc(5 * -32px) -96px;
+    }
+
+    60% {
+        object-position: calc(6 * -32px) -96px;
+    }
+
+    70% {
+        object-position: calc(7 * -32px) -96px;
+    }
+
+    80% {
+        object-position: calc(8 * -32px) -96px;
+    }
+
+    90% {
+        object-position: calc(9 * -32px) -96px;
+    }
+
+    100% {
+        object-position: calc(10 * -32px) -96px;
+    }
+}
+
 #gameMap {
     box-sizing: border-box;
     height: 400px;
@@ -42,7 +88,6 @@
     height: 32px;
     object-fit: none;
     object-position: 0 0;
-    animation: playersMovement 0.8s infinite step-end;
 
     user-select: none;
     -webkit-user-drag: none;
@@ -53,6 +98,14 @@
     left: 32px;
 
     z-index: 1;
+}
+
+.playersMove {
+    animation: playersIdle 0.8s infinite step-end;
+}
+
+.playersRemove {
+    animation: playersDestroyed 1s 1 step-end;
 }
 
 .playersNickname {

@@ -1,4 +1,4 @@
-export interface WebSocketMessage {
+export interface WebSocketMessageInterface {
     type: string,
     value: {
         playerID? : number,

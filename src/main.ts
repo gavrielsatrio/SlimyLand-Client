@@ -1,5 +1,5 @@
 import './style.css';
-import { WebSocketMessage } from './WebSocketMessage';
+import { WebSocketMessageInterface } from '../types/WebSocketMessageInterface';
 
 const gameMap: HTMLElement = document.querySelector("#gameMap")!;
 const btnJoin: HTMLElement = document.querySelector("#btnJoin")!;
@@ -43,7 +43,7 @@ webSocketConnection.addEventListener("error", () =>
 
 webSocketConnection.addEventListener("message", (e) =>
 {
-    const jsonObject: WebSocketMessage = JSON.parse(e.data);
+    const jsonObject: WebSocketMessageInterface = JSON.parse(e.data);
 
     if(jsonObject.type == "loadMap")
     {
@@ -119,28 +119,7 @@ webSocketConnection.addEventListener("message", (e) =>
     {
         // Triggered when another player is left
 
-        const playerRemoved: HTMLElement = document.querySelector(`#player${jsonObject.value.playerID}`)!;
-        playerRemoved.remove();
-    }
-    else if(jsonObject.type == "clearMap")
-    {
-        gameMap.innerHTML = "";
-        yourPlayer = null;
-        chatContainer = null;
-        txtChat = null;
-    }
-    else if(jsonObject.type == "mapUpdates")
-    {
-        loadPlayer(jsonObject);
-
-        gameMap.innerHTML += `
-        <div class="p-3 w-100 align-self-end bg-white position-absolute slideDown" id="chatContainer">
-            <input type="text" class="form-control" id="txtChat">
-        </div>`;
-
-        yourPlayer = document.querySelector(`#player${yourPlayerID}`);
-        chatContainer = document.querySelector("#chatContainer");
-        txtChat = document.querySelector("#txtChat");
+        removePlayer(jsonObject.value.playerID!);
     }
     else if(jsonObject.type == "playerChat")
     {
@@ -154,12 +133,13 @@ webSocketConnection.addEventListener("message", (e) =>
 });
 
 
-const loadPlayer = (jsonObject: WebSocketMessage) =>
+const loadPlayer = (jsonObject: WebSocketMessageInterface) =>
 {
     const player = document.createElement("img");
     player.id = "player" + jsonObject.value.playerID!;
-    player.src = `/src/Assets/Slime_${color[(jsonObject.value.playerID! - 1) % 7]}.png`;
+    player.src = `/Assets/Slime_${color[(jsonObject.value.playerID! - 1) % 7]}.png`;
     player.classList.add("players");
+    player.classList.add("playersMove");
     player.style.top = `${jsonObject.value.y!}px`;
     player.style.left = `${jsonObject.value.x!}px`;
 
@@ -174,6 +154,31 @@ const loadPlayer = (jsonObject: WebSocketMessage) =>
 
     gameMap.appendChild(playerNickname);
     gameMap.appendChild(player);
+};
+
+const removePlayer = (id: number) =>
+{
+    const playerRemoved: HTMLElement = document.querySelector(`#player${id}`)!;
+    playerRemoved.classList.add("playersMove");
+    playerRemoved.classList.add("playersRemove");
+
+    const playerNicknameRemoved: HTMLElement = document.querySelector(`#playerNickname${id}`)!;
+    
+    playerRemoved.addEventListener("animationend", () =>
+    {
+        playerRemoved.remove();
+        playerNicknameRemoved.remove();
+
+        if(yourPlayer == null) {
+            resetSlimyLand();
+
+            webSocketConnection.send(JSON.stringify(
+                {
+                    type : "requestLoadMap",
+                }
+            ));
+        }
+    });
 };
 
 const resetSlimyLand = () =>
@@ -442,6 +447,8 @@ btnJoin.addEventListener("click", () =>
     }
     else
     {
+        yourPlayer = null;
+
         webSocketConnection.send(JSON.stringify(
             {
                 type : "playerRemoved",
@@ -451,8 +458,6 @@ btnJoin.addEventListener("click", () =>
                 }
             }
         ));
-
-        resetSlimyLand();
     }
 });
 
