@@ -139,7 +139,7 @@ const loadPlayer = (jsonObject: WebSocketMessageInterface) =>
     player.id = "player" + jsonObject.value.playerID!;
     player.src = `/Assets/Slime_${color[(jsonObject.value.playerID! - 1) % 7]}.png`;
     player.classList.add("players");
-    player.classList.add("playersMove");
+    player.classList.add("playersIdle");
     player.style.top = `${jsonObject.value.y!}px`;
     player.style.left = `${jsonObject.value.x!}px`;
 
@@ -159,8 +159,8 @@ const loadPlayer = (jsonObject: WebSocketMessageInterface) =>
 const removePlayer = (id: number) =>
 {
     const playerRemoved: HTMLElement = document.querySelector(`#player${id}`)!;
-    playerRemoved.classList.add("playersMove");
-    playerRemoved.classList.add("playersRemove");
+    playerRemoved.classList.remove("playersIdle");
+    playerRemoved.classList.add("playersDestroyed");
 
     const playerNicknameRemoved: HTMLElement = document.querySelector(`#playerNickname${id}`)!;
     
@@ -297,6 +297,9 @@ const gameMapOnKey = (e: KeyboardEvent) =>
     // Players should can't move while doing chat
     if(chatToggle == "off")
     {
+        yourPlayer.classList.add("playersMove");
+        yourPlayer.classList.remove("playersIdle");
+
         if(gameMapKeyObject["w"] == true && gameMapKeyObject["a"] == true || (gameMapKeyObject["ArrowUp"] == true && gameMapKeyObject["ArrowLeft"] == true))
         {
             // Move left and up
@@ -362,6 +365,13 @@ const gameMapOnKey = (e: KeyboardEvent) =>
 
             chatToggle = "on";
             txtChat.value = "";
+        }
+        else if((gameMapKeyObject["w"] == false || gameMapKeyObject["a"] == false || gameMapKeyObject["s"] == false || gameMapKeyObject["d"] == false) || (gameMapKeyObject["w"] == undefined || gameMapKeyObject["a"] == undefined || gameMapKeyObject["s"] == undefined || gameMapKeyObject["d"] == undefined))
+        {
+            // Player stops moving
+
+            yourPlayer.classList.remove("playersMove");
+            yourPlayer.classList.add("playersIdle");
         }
     }
     else
