@@ -1,4 +1,4 @@
-@keyframes playersIdle {
+@keyframes playersIdleAnimation {
     0% {
         object-position: calc(0 * -32px) 0;
     }
@@ -28,7 +28,37 @@
     }
 }
 
-@keyframes playersDestroyed {
+@keyframes playersMoveAnimation {
+    0% {
+        object-position: calc(0 * -32px) -32px;
+    }
+
+    17% {
+        object-position: calc(1 * -32px) -32px;
+    }
+
+    34% {
+        object-position: calc(2 * -32px) -32px;
+    }
+
+    51% {
+        object-position: calc(3 * -32px) -32px;
+    }
+
+    68% {
+        object-position: calc(4 * -32px) -32px;
+    }
+
+    85% {
+        object-position: calc(5 * -32px) -32px;
+    }
+
+    100% {
+        object-position: calc(6 * -32px) -32px;
+    }
+}
+
+@keyframes playersDestroyedAnimation {
     0% {
         object-position: calc(0 * -32px) -96px;
     }
@@ -100,12 +130,16 @@
     z-index: 1;
 }
 
-.playersMove {
-    animation: playersIdle 0.8s infinite step-end;
+.playersIdle {
+    animation: playersIdleAnimation 0.8s infinite step-end;
 }
 
-.playersRemove {
-    animation: playersDestroyed 1s 1 step-end;
+.playersMove {
+    animation: playersMoveAnimation 0.4s infinite step-end;
+}
+
+.playersDestroyed {
+    animation: playersDestroyedAnimation 1s 1 step-end;
 }
 
 .playersNickname {
